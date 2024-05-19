@@ -72,3 +72,23 @@ lib/
 ├── profile_screen.dart       # Screen for managing user profile and goals
 ├── reporting_screen.dart     # Screen for viewing daily reports
 └── firebase_options.dart     # Firebase configuration
+```
+
+### Usage
+
+1. Log Entries: Use the log entry screen to log interactions, actions, and categories every 30 minutes.
+2. View Reports: View daily reports of your logged activities.
+3. Manage Profile: Set and track your personal goals on the profile screen.
+
+### Security
+
+- Encryption: All sensitive data is encrypted before being stored in Firebase.
+- Environment Variables: Environment variables are used to manage encryption keys securely.
+
+### Contributing
+
+If you would like to contribute to this project, please fork the repository and submit a pull request.
+
+### License
+
+This project is licensed under the MIT License.
