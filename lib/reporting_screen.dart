@@ -1,10 +1,14 @@
+// lib/reporting_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'encryption_service.dart';
 
 class ReportingScreen extends StatelessWidget {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final EncryptionService _encryptionService = EncryptionService();
 
   ReportingScreen({super.key});
 
@@ -18,7 +22,23 @@ class ReportingScreen extends StatelessWidget {
           .orderBy('timestamp', descending: true)
           .get();
 
-      return querySnapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+      return Future.wait(querySnapshot.docs.map((doc) async {
+        final data = doc.data() as Map<String, dynamic>;
+        final interactions = data['interactions'] as List<dynamic>;
+        final decryptedInteractions = await Future.wait(interactions.map((interaction) async {
+          return {
+            'interactionWith': await _encryptionService.decryptText(interaction['interactionWith']),
+            'action': await _encryptionService.decryptText(interaction['action']),
+            'category': await _encryptionService.decryptText(interaction['category']),
+          };
+        }));
+
+        return {
+          'userId': data['userId'],
+          'timestamp': data['timestamp'],
+          'interactions': decryptedInteractions,
+        };
+      }).toList());
     }
     return [];
   }

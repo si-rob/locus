@@ -1,6 +1,9 @@
+// lib/log_entry_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'encryption_service.dart';
 
 class LogEntryScreen extends StatefulWidget {
   const LogEntryScreen({super.key});
@@ -12,6 +15,7 @@ class LogEntryScreen extends StatefulWidget {
 class LogEntryScreenState extends State<LogEntryScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final EncryptionService _encryptionService = EncryptionService();
 
   final TextEditingController _interactionController = TextEditingController();
   final TextEditingController _actionController = TextEditingController();
@@ -26,9 +30,9 @@ class LogEntryScreenState extends State<LogEntryScreen> {
           'timestamp': Timestamp.now(),
           'interactions': [
             {
-              'interactionWith': _interactionController.text,
-              'action': _actionController.text,
-              'category': _categoryController.text,
+              'interactionWith': await _encryptionService.encryptText(_interactionController.text),
+              'action': await _encryptionService.encryptText(_actionController.text),
+              'category': await _encryptionService.encryptText(_categoryController.text),
             }
           ]
         });
