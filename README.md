@@ -46,5 +46,29 @@ Locus is a Flutter application for Android and iOS designed to log activities ev
     Create a .env file in the root directory with the following content:
 
     ```sh
-    KEY_STORAGE_KEY=encryption_key
-    IV_STORAGE_KEY=encryption_iv
+    ANDROID_API_KEY=android_api_key
+   ANDROID_APP_ID=android_app_id
+   MESSAGING_SENDER_ID=messaging_sender_id
+   PROJECT_ID=project_id
+   STORAGE_BUCKET=storage_bucket
+   IOS_BUNDLE_ID=ios_bundle_id
+   IOS_API_KEY=ios_api_key
+   IOS_APP_ID=ios_app_id
+   KEY_STORAGE_KEY=key_storage_key
+   IV_STORAGE_KEY=iv_storage_key
+
+5. **Run the app**:
+
+    ```sh
+    flutter run
+
+### Project Structure
+
+```sh
+lib/
+├── encryption_service.dart   # Handles encryption and decryption
+├── log_entry_screen.dart     # Screen for logging activities
+├── main.dart                 # Entry point of the application
+├── profile_screen.dart       # Screen for managing user profile and goals
+├── reporting_screen.dart     # Screen for viewing daily reports
+└── firebase_options.dart     # Firebase configuration
