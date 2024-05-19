@@ -1,5 +1,3 @@
-// lib/encryption_service.dart
-
 import 'package:encrypt/encrypt.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -23,16 +21,14 @@ class EncryptionService {
   Future<Encrypter> _getEncrypter() async {
     await _initializeKeys();
     final keyString = await _secureStorage.read(key: _keyStorageKey);
-    final ivString = await _secureStorage.read(key: _ivStorageKey);
     final key = Key.fromBase64(keyString!);
-    final iv = IV.fromBase64(ivString!);
-    return Encrypter(AES(key, mode: AESMode.cbc)); // Using CBC mode for AES
+    return Encrypter(AES(key, mode: AESMode.cbc));
   }
 
   Future<String> encryptText(String text) async {
     final encrypter = await _getEncrypter();
     final ivString = await _secureStorage.read(key: _ivStorageKey);
-    final iv = IV.fromBase64(ivString!);
+    final iv = IV.fromBase64(ivString!); // Ensure iv is used
     final encrypted = encrypter.encrypt(text, iv: iv);
     return encrypted.base64;
   }
@@ -40,7 +36,7 @@ class EncryptionService {
   Future<String> decryptText(String encryptedText) async {
     final encrypter = await _getEncrypter();
     final ivString = await _secureStorage.read(key: _ivStorageKey);
-    final iv = IV.fromBase64(ivString!);
+    final iv = IV.fromBase64(ivString!); // Ensure iv is used
     final encrypted = Encrypted.fromBase64(encryptedText);
     final decrypted = encrypter.decrypt(encrypted, iv: iv);
     return decrypted;
