@@ -3,11 +3,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LogEntryScreen extends StatefulWidget {
+  const LogEntryScreen({super.key});
+
   @override
-  _LogEntryScreenState createState() => _LogEntryScreenState();
+  LogEntryScreenState createState() => LogEntryScreenState();
 }
 
-class _LogEntryScreenState extends State<LogEntryScreen> {
+class LogEntryScreenState extends State<LogEntryScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -15,7 +17,7 @@ class _LogEntryScreenState extends State<LogEntryScreen> {
   final TextEditingController _actionController = TextEditingController();
   final TextEditingController _categoryController = TextEditingController();
 
-  void _saveLogEntry() async {
+  Future<void> _saveLogEntry() async {
     final User? user = _auth.currentUser;
     if (user != null) {
       try {
@@ -30,12 +32,20 @@ class _LogEntryScreenState extends State<LogEntryScreen> {
             }
           ]
         });
-        _interactionController.clear();
-        _actionController.clear();
-        _categoryController.clear();
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Log entry saved!')));
+        if (!mounted) return;
+        setState(() {
+          _interactionController.clear();
+          _actionController.clear();
+          _categoryController.clear();
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Log entry saved!'))
+        );
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to save log entry: $e')));
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to save log entry: $e'))
+        );
       }
     }
   }
@@ -43,27 +53,27 @@ class _LogEntryScreenState extends State<LogEntryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Log Entry')),
+      appBar: AppBar(title: const Text('Log Entry')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             TextField(
               controller: _interactionController,
-              decoration: InputDecoration(labelText: 'Interaction With'),
+              decoration: const InputDecoration(labelText: 'Interaction With'),
             ),
             TextField(
               controller: _actionController,
-              decoration: InputDecoration(labelText: 'Action'),
+              decoration: const InputDecoration(labelText: 'Action'),
             ),
             TextField(
               controller: _categoryController,
-              decoration: InputDecoration(labelText: 'Category'),
+              decoration: const InputDecoration(labelText: 'Category'),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _saveLogEntry,
-              child: Text('Save Log Entry'),
+              child: const Text('Save Log Entry'),
             ),
           ],
         ),

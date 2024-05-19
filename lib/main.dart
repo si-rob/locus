@@ -15,10 +15,12 @@ void main() async{
   await Firebase.initializeApp(
   options: DefaultFirebaseOptions().currentPlatform,
 );
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -29,11 +31,11 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: '/',
       routes: {
-        '/': (context) => SignInScreen(),
-        '/home': (context) => HomeScreen(),
-        '/log': (context) => LogEntryScreen(),
-        '/report': (context) => ReportingScreen(),
-        '/profile': (context) => ProfileScreen(),
+        '/': (context) => const SignInScreen(),
+        '/home': (context) =>  const HomeScreen(),
+        '/log': (context) =>   const LogEntryScreen(),
+        '/report': (context) =>  ReportingScreen(),
+        '/profile': (context) => const ProfileScreen(),
       },
     );
   }

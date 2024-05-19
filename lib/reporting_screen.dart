@@ -6,13 +6,15 @@ class ReportingScreen extends StatelessWidget {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  ReportingScreen({super.key});
+
   Future<List<Map<String, dynamic>>> _fetchLogEntries() async {
     final User? user = _auth.currentUser;
     if (user != null) {
       final QuerySnapshot querySnapshot = await _firestore
           .collection('logEntries')
           .where('userId', isEqualTo: user.uid)
-          .where('timestamp', isGreaterThan: Timestamp.fromDate(DateTime.now().subtract(Duration(days: 1))))
+          .where('timestamp', isGreaterThan: Timestamp.fromDate(DateTime.now().subtract(const Duration(days: 1))))
           .orderBy('timestamp', descending: true)
           .get();
 
@@ -24,12 +26,12 @@ class ReportingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Daily Report')),
+      appBar: AppBar(title: const Text('Daily Report')),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: _fetchLogEntries(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Error fetching log entries: ${snapshot.error}'));
           } else if (snapshot.hasData) {
@@ -47,7 +49,7 @@ class ReportingScreen extends StatelessWidget {
               },
             );
           } else {
-            return Center(child: Text('No log entries found'));
+            return const Center(child: Text('No log entries found'));
           }
         },
       ),

@@ -3,16 +3,18 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class ProfileScreen extends StatefulWidget {
+  const ProfileScreen({super.key});
+
   @override
-  _ProfileScreenState createState() => _ProfileScreenState();
+  ProfileScreenState createState() => ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class ProfileScreenState extends State<ProfileScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   final TextEditingController _goalController = TextEditingController();
-  List<String> _goals = [];
+  final List<String> _goals = [];
 
   void _addGoal() {
     setState(() {
@@ -21,34 +23,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
-  void _saveGoals() async {
+  Future<void> _saveGoals() async {
     final User? user = _auth.currentUser;
     if (user != null) {
       await _firestore.collection('users').doc(user.uid).set({
         'goals': _goals,
       });
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Goals saved!')));
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Goals saved!'))
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Profile')),
+      appBar: AppBar(title: const Text('Profile')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             TextField(
               controller: _goalController,
-              decoration: InputDecoration(labelText: 'New Goal'),
+              decoration: const InputDecoration(labelText: 'New Goal'),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             ElevatedButton(
               onPressed: _addGoal,
-              child: Text('Add Goal'),
+              child: const Text('Add Goal'),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Expanded(
               child: ListView.builder(
                 itemCount: _goals.length,
@@ -61,8 +66,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             ElevatedButton(
               onPressed: _saveGoals,
-              child: Text('Save Goals'),
-            )
+              child: const Text('Save Goals'),
+            ),
           ],
         ),
       ),

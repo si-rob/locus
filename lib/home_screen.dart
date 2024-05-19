@@ -1,22 +1,33 @@
 import 'package:flutter/material.dart';
 import 'auth_service.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  HomeScreenState createState() => HomeScreenState();
+}
+
+class HomeScreenState extends State<HomeScreen> {
   final AuthService _authService = AuthService();
+
+  Future<void> _signOut() async {
+    await _authService.signOut();
+    if (mounted) {
+      Navigator.pushReplacementNamed(context, '/');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Home'),
+        title: const Text('Home'),
         actions: [
           IconButton(
-            icon: Icon(Icons.logout),
-            onPressed: () async {
-              await _authService.signOut();
-              Navigator.pushReplacementNamed(context, '/');
-            },
-          )
+            icon: const Icon(Icons.logout),
+            onPressed: _signOut,
+          ),
         ],
       ),
       body: Center(
@@ -27,19 +38,19 @@ class HomeScreen extends StatelessWidget {
               onPressed: () {
                 Navigator.pushNamed(context, '/log');
               },
-              child: Text('Log Entry'),
+              child: const Text('Log Entry'),
             ),
             ElevatedButton(
               onPressed: () {
                 Navigator.pushNamed(context, '/report');
               },
-              child: Text('Daily Report'),
+              child: const Text('Daily Report'),
             ),
             ElevatedButton(
               onPressed: () {
                 Navigator.pushNamed(context, '/profile');
               },
-              child: Text('Profile'),
+              child: const Text('Profile'),
             ),
           ],
         ),
