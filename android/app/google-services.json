@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "646754577588",
+    "project_id": "locus-beb91",
+    "storage_bucket": "locus-beb91.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:646754577588:android:ff36017d81e8cd650ffbe1",
+        "android_client_info": {
+          "package_name": "us.trv2.locus"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "646754577588-23fomfc19bvs2nah7kkn7segomatv7l3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "us.trv2.locus",
+            "certificate_hash": "c5de7d27393402df4d22228bee67ab6a5962c935"
+          }
+        },
+        {
+          "client_id": "646754577588-e6iotp25l1cj7h85jci7hflk7ssuf12g.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC7PKH3L4jr8GhFF0FjE1wxx8VEst51Olc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "646754577588-e6iotp25l1cj7h85jci7hflk7ssuf12g.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "646754577588-qpp4krr57uifer09ritu5gp0vdp4lvtq.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.locus"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
