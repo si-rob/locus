@@ -6,15 +6,17 @@ import 'home_screen.dart';
 import 'log_entry_screen.dart';
 import 'reporting_screen.dart';
 import 'profile_screen.dart';
+import 'goals_screen.dart'; // Import the GoalsScreen
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-
-void main() async{
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
   await Firebase.initializeApp(
-  options: DefaultFirebaseOptions().currentPlatform,
-);
+    options: DefaultFirebaseOptions().currentPlatform,
+  );
   runApp(const MyApp());
 }
 
@@ -23,6 +25,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final FirebaseAuth auth = FirebaseAuth.instance;
+    final FirebaseFirestore firestore = FirebaseFirestore.instance;
+
     return MaterialApp(
       title: 'Locus',
       theme: ThemeData(
@@ -32,10 +37,11 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => const SignInScreen(),
-        '/home': (context) =>  const HomeScreen(),
-        '/log': (context) =>   const LogEntryScreen(),
-        '/report': (context) =>  ReportingScreen(),
+        '/home': (context) => const HomeScreen(),
+        '/log': (context) => const LogEntryScreen(),
+        '/report': (context) => ReportingScreen(),
         '/profile': (context) => const ProfileScreen(),
+        '/goals': (context) => GoalsScreen(auth: auth, firestore: firestore), // Pass instances
       },
     );
   }
