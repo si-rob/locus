@@ -1,5 +1,3 @@
-// lib/log_entry_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -59,24 +57,43 @@ class LogEntryScreenState extends State<LogEntryScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Log Entry')),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             TextField(
               controller: _interactionController,
-              decoration: const InputDecoration(labelText: 'Interaction With'),
-            ),
-            TextField(
-              controller: _actionController,
-              decoration: const InputDecoration(labelText: 'Action'),
-            ),
-            TextField(
-              controller: _categoryController,
-              decoration: const InputDecoration(labelText: 'Category'),
+              decoration: const InputDecoration(
+                labelText: 'Interaction With',
+                border: OutlineInputBorder(),
+              ),
+              style: const TextStyle(fontSize: 18),
             ),
             const SizedBox(height: 20),
+            TextField(
+              controller: _actionController,
+              decoration: const InputDecoration(
+                labelText: 'Action',
+                border: OutlineInputBorder(),
+              ),
+              style: const TextStyle(fontSize: 18),
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              controller: _categoryController,
+              decoration: const InputDecoration(
+                labelText: 'Category',
+                border: OutlineInputBorder(),
+              ),
+              style: const TextStyle(fontSize: 18),
+            ),
+            const SizedBox(height: 40),
             ElevatedButton(
               onPressed: _saveLogEntry,
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 15),
+                textStyle: const TextStyle(fontSize: 18),
+              ),
               child: const Text('Save Log Entry'),
             ),
           ],

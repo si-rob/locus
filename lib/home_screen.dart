@@ -30,26 +30,42 @@ class HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: Center(
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             ElevatedButton(
               onPressed: () {
                 Navigator.pushNamed(context, '/log');
               },
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                textStyle: const TextStyle(fontSize: 18),
+              ),
               child: const Text('Log Entry'),
             ),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
                 Navigator.pushNamed(context, '/report');
               },
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                textStyle: const TextStyle(fontSize: 18),
+              ),
               child: const Text('Daily Report'),
             ),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
                 Navigator.pushNamed(context, '/profile');
               },
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                textStyle: const TextStyle(fontSize: 18),
+              ),
               child: const Text('Profile'),
             ),
           ],

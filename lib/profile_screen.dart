@@ -14,7 +14,28 @@ class ProfileScreenState extends State<ProfileScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   final TextEditingController _goalController = TextEditingController();
-  final List<String> _goals = [];
+  List<String> _goals = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchGoals();
+  }
+
+  Future<void> _fetchGoals() async {
+    final User? user = _auth.currentUser;
+    if (user != null) {
+      final DocumentSnapshot userDoc = await _firestore.collection('users').doc(user.uid).get();
+      if (userDoc.exists) {
+        final data = userDoc.data() as Map<String, dynamic>;
+        if (data.containsKey('goals')) {
+          setState(() {
+            _goals = List<String>.from(data['goals']);
+          });
+        }
+      }
+    }
+  }
 
   void _addGoal() {
     setState(() {
@@ -28,8 +49,8 @@ class ProfileScreenState extends State<ProfileScreen> {
     if (user != null) {
       await _firestore.collection('users').doc(user.uid).set({
         'goals': _goals,
-      });
-      if (!mounted) return;
+      }, SetOptions(merge: true)); // Use merge option to avoid overwriting
+      if (!mounted) return; // Check if the widget is still mounted
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Goals saved!'))
       );
@@ -41,16 +62,25 @@ class ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Profile')),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             TextField(
               controller: _goalController,
-              decoration: const InputDecoration(labelText: 'New Goal'),
+              decoration: const InputDecoration(
+                labelText: 'New Goal',
+                border: OutlineInputBorder(),
+              ),
+              style: const TextStyle(fontSize: 18),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _addGoal,
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 15),
+                textStyle: const TextStyle(fontSize: 18),
+              ),
               child: const Text('Add Goal'),
             ),
             const SizedBox(height: 20),
@@ -59,13 +89,21 @@ class ProfileScreenState extends State<ProfileScreen> {
                 itemCount: _goals.length,
                 itemBuilder: (context, index) {
                   return ListTile(
-                    title: Text(_goals[index]),
+                    title: Text(
+                      '⭐ ${_goals[index]}',
+                      style: const TextStyle(fontSize: 18),
+                    ),
                   );
                 },
               ),
             ),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _saveGoals,
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 15),
+                textStyle: const TextStyle(fontSize: 18),
+              ),
               child: const Text('Save Goals'),
             ),
           ],
