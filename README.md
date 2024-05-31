@@ -43,7 +43,7 @@ Locus is a Flutter application for Android and iOS designed to log activities ev
 
 4. **Configure environment variables**:
 
-    Create a .env file in the root directory with the following content:
+    Copy env.example to .env file in the root directory and fill in the values for each key:
 
     ```sh
     ANDROID_API_KEY=android_api_key
