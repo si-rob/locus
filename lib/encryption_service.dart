@@ -1,26 +1,53 @@
+// ignore_for_file: avoid_print
+
 import 'package:encrypt/encrypt.dart' as encrypt;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter/foundation.dart' as foundation;
+import 'package:flutter/foundation.dart' as foundation; // Import foundation for kDebugMode
 
 class EncryptionService {
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   final String _keyStorageKey = dotenv.env['KEY_STORAGE_KEY']!;
   final String _ivStorageKey = dotenv.env['IV_STORAGE_KEY']!;
 
   Future<void> _initializeKeys() async {
+    final User? user = _auth.currentUser;
+    if (user == null) throw Exception("User not authenticated");
+
     String? keyString = await _secureStorage.read(key: _keyStorageKey);
     String? ivString = await _secureStorage.read(key: _ivStorageKey);
 
     if (keyString == null || ivString == null) {
-      if (foundation.kDebugMode) {
-        // ignore: avoid_print
-        print("Keys are missing, likely due to app reinstallation. Regenerating keys...");
+      final doc = await _firestore.collection('encryptionKeys').doc(user.uid).get();
+      if (doc.exists) {
+        final data = doc.data();
+        keyString = data?['key'];
+        ivString = data?['iv'];
+
+        await _secureStorage.write(key: _keyStorageKey, value: keyString);
+        await _secureStorage.write(key: _ivStorageKey, value: ivString);
+      } else {
+        final key = encrypt.Key.fromSecureRandom(32); // Generate a 256-bit key
+        final iv = encrypt.IV.fromSecureRandom(16);   // Generate a 128-bit IV
+        keyString = key.base64;
+        ivString = iv.base64;
+
+        await _secureStorage.write(key: _keyStorageKey, value: keyString);
+        await _secureStorage.write(key: _ivStorageKey, value: ivString);
+
+        await _firestore.collection('encryptionKeys').doc(user.uid).set({
+          'key': keyString,
+          'iv': ivString,
+        });
       }
-      final key = encrypt.Key.fromSecureRandom(32); // Generate a 256-bit key
-      final iv = encrypt.IV.fromSecureRandom(16);   // Generate a 128-bit IV
-      await _secureStorage.write(key: _keyStorageKey, value: key.base64);
-      await _secureStorage.write(key: _ivStorageKey, value: iv.base64);
+    }
+
+    if (foundation.kDebugMode) {
+      print("Encryption keys initialized");
     }
   }
 
