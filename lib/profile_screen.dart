@@ -283,6 +283,17 @@ class ProfileScreenState extends State<ProfileScreen> {
               ),
               child: const Text('Save Preferences'),
             ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/goals');
+              },
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 15),
+                textStyle: const TextStyle(fontSize: 18),
+              ),
+              child: const Text('Manage Goals'),
+            ),
             if (kDebugMode) ...[
               const SizedBox(height: 20),
               ElevatedButton(

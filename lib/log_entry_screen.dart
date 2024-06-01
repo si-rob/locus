@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'encryption_service.dart';
 
 class LogEntryScreen extends StatefulWidget {
   const LogEntryScreen({super.key});
@@ -12,11 +13,11 @@ class LogEntryScreen extends StatefulWidget {
 class LogEntryScreenState extends State<LogEntryScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final EncryptionService _encryptionService = EncryptionService();
 
   final TextEditingController _interactionController = TextEditingController();
   final TextEditingController _actionController = TextEditingController();
   final TextEditingController _categoryController = TextEditingController();
-  final TextEditingController _timeTakenController = TextEditingController(); // New field for time taken
 
   Future<void> _saveLogEntry() async {
     final User? user = _auth.currentUser;
@@ -25,25 +26,27 @@ class LogEntryScreenState extends State<LogEntryScreen> {
         await _firestore.collection('logEntries').add({
           'userId': user.uid,
           'timestamp': Timestamp.now(),
-          'interactionWith': _interactionController.text,
-          'action': _actionController.text,
-          'category': _categoryController.text,
-          'timeTaken': double.tryParse(_timeTakenController.text) ?? 0.0, // Save the time taken
+          'interactions': [
+            {
+              'interactionWith': await _encryptionService.encryptText(_interactionController.text),
+              'action': await _encryptionService.encryptText(_actionController.text),
+              'category': await _encryptionService.encryptText(_categoryController.text),
+            }
+          ]
         });
         if (!mounted) return;
         setState(() {
           _interactionController.clear();
           _actionController.clear();
           _categoryController.clear();
-          _timeTakenController.clear();
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Log entry saved!')),
+          const SnackBar(content: Text('Log entry saved!'))
         );
       } catch (e) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to save log entry: $e')),
+          SnackBar(content: Text('Failed to save log entry: $e'))
         );
       }
     }
@@ -82,16 +85,6 @@ class LogEntryScreenState extends State<LogEntryScreen> {
                 labelText: 'Category',
                 border: OutlineInputBorder(),
               ),
-              style: const TextStyle(fontSize: 18),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _timeTakenController,
-              decoration: const InputDecoration(
-                labelText: 'Time Taken (minutes)',
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: TextInputType.number,
               style: const TextStyle(fontSize: 18),
             ),
             const SizedBox(height: 40),
