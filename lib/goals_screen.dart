@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'encryption_service.dart';
 import 'goal_details_screen.dart';
+import 'package:flutter/foundation.dart'; // Import foundation for kDebugMode
 
 class GoalsScreen extends StatefulWidget {
   final FirebaseAuth auth;
@@ -39,18 +40,26 @@ class GoalsScreenState extends State<GoalsScreen> {
           final goalsData = data['goals'];
           if (goalsData is List) {
             final decryptedGoals = await Future.wait(goalsData.whereType<Map<String, dynamic>>().map((goal) async {
-              return {
-                'title': await _encryptionService.decryptText(goal['title']),
-                'goalType': await _encryptionService.decryptText(goal['goalType']),
-                'goalDuration': goal['goalDuration'] != null ? await _encryptionService.decryptText(goal['goalDuration']) : null,
-                'goalCompletion': goal['goalCompletion'],
-              };
+              try {
+                return {
+                  'title': await _encryptionService.decryptText(goal['title']),
+                  'goalType': await _encryptionService.decryptText(goal['goalType']),
+                  'goalDuration': goal['goalDuration'] != null
+                      ? await _encryptionService.decryptText(goal['goalDuration'])
+                      : null,
+                  'goalCompletion': goal['goalCompletion'],
+                };
+              } catch (e) {
+                if (kDebugMode) {
+                  print('Decryption error: $e');
+                }
+                return null;
+              }
             }).toList());
-            if (mounted) {
-              setState(() {
-                _goals = decryptedGoals;
-              });
-            }
+
+            setState(() {
+              _goals = decryptedGoals.where((goal) => goal != null).cast<Map<String, dynamic>>().toList();
+            });
           }
         }
       }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'encryption_service.dart';
-import 'package:intl/intl.dart'; // Add this import for formatting date and time
+import 'package:intl/intl.dart';
 
 class ReportingScreen extends StatelessWidget {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -23,19 +23,17 @@ class ReportingScreen extends StatelessWidget {
 
       return Future.wait(querySnapshot.docs.map((doc) async {
         final data = doc.data() as Map<String, dynamic>;
-        final interactions = data['interactions'] as List<dynamic>;
-        final decryptedInteractions = await Future.wait(interactions.map((interaction) async {
-          return {
-            'interactionWith': await _encryptionService.decryptText(interaction['interactionWith']),
-            'action': await _encryptionService.decryptText(interaction['action']),
-            'category': await _encryptionService.decryptText(interaction['category']),
-          };
-        }));
+        final interactionWith = await _encryptionService.decryptText(data['interactionWith']);
+        final action = await _encryptionService.decryptText(data['action']);
+        final category = await _encryptionService.decryptText(data['category']);
 
         return {
           'userId': data['userId'],
           'timestamp': data['timestamp'],
-          'interactions': decryptedInteractions,
+          'interactionWith': interactionWith,
+          'action': action,
+          'category': category,
+          'timeTaken': data['timeTaken'],
         };
       }).toList());
     }
@@ -67,8 +65,6 @@ class ReportingScreen extends StatelessWidget {
                 itemCount: logEntries.length,
                 itemBuilder: (context, index) {
                   final logEntry = logEntries[index];
-                  final interactions = logEntry['interactions'] as List<dynamic>;
-                  final interactionDetails = interactions.isNotEmpty ? interactions[0] : {};
                   return Card(
                     margin: const EdgeInsets.symmetric(vertical: 10),
                     child: Padding(
@@ -82,17 +78,22 @@ class ReportingScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: 10),
                           Text(
-                            'Interaction With: ${interactionDetails['interactionWith'] ?? 'None'}',
+                            'Interaction With: ${logEntry['interactionWith']}',
                             style: const TextStyle(fontSize: 16),
                           ),
                           const SizedBox(height: 5),
                           Text(
-                            'Action: ${interactionDetails['action'] ?? 'No action'}',
+                            'Action: ${logEntry['action']}',
                             style: const TextStyle(fontSize: 16),
                           ),
                           const SizedBox(height: 5),
                           Text(
-                            'Category: ${interactionDetails['category'] ?? 'No category'}',
+                            'Category: ${logEntry['category']}',
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                          const SizedBox(height: 5),
+                          Text(
+                            'Time Taken: ${logEntry['timeTaken']} minutes',
                             style: const TextStyle(fontSize: 16),
                           ),
                         ],
