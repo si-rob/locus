@@ -47,6 +47,7 @@ dependencies:
   shared_preferences: ^2.2.3
   timezone: ^0.9.3
   permission_handler: ^11.3.1
+  flutter_timezone: ^1.0.8
 
 
 dev_dependencies:

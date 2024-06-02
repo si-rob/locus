@@ -1,10 +1,9 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter/foundation.dart'; // For kDebugMode
 
 // Constants for notification settings
 const String notificationChannelId = 'locus_notifications';
@@ -56,8 +55,13 @@ class ProfileScreenState extends State<ProfileScreen> {
     await flutterLocalNotificationsPlugin.initialize(
       initializationSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) async {
+        if (kDebugMode) {
+          print('Notification clicked with payload: ${response.payload}');
+        }
         // Handle notification tapped logic here
-        Navigator.pushNamed(context, '/log');
+        if (response.payload != null) {
+          Navigator.pushNamed(context, '/log', arguments: response.payload);
+        }
       },
     );
 
@@ -69,8 +73,6 @@ class ProfileScreenState extends State<ProfileScreen> {
       importance: Importance.high,
     );
     await flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()?.createNotificationChannel(channel);
-
-    tz.initializeTimeZones();
   }
 
   Future<void> _loadPreferences() async {
@@ -86,6 +88,11 @@ class ProfileScreenState extends State<ProfileScreen> {
         hour: prefs.getInt('endHour') ?? defaultEndTime.hour,
         minute: prefs.getInt('endMinute') ?? defaultEndTime.minute,
       );
+
+      // Ensure the notification interval is one of the valid values
+      if (![15, 30, 60].contains(_notificationInterval)) {
+        _notificationInterval = defaultNotificationInterval;
+      }
     });
   }
 
@@ -123,7 +130,10 @@ class ProfileScreenState extends State<ProfileScreen> {
   Future<void> _scheduleNotifications() async {
     await _cancelNotifications();
 
+    // Get the current local time
     final now = tz.TZDateTime.now(tz.local);
+
+    // Calculate the start and end times for the notifications based on user preferences
     var start = tz.TZDateTime(
       tz.local,
       now.year,
@@ -142,40 +152,49 @@ class ProfileScreenState extends State<ProfileScreen> {
       _endTime.minute,
     );
 
+    // If the start time is before now, start from the next interval
     if (start.isBefore(now)) {
-      // If the start time is before now, schedule for the next day
-      start = start.add(const Duration(days: 1));
+      start = start.add(Duration(
+        minutes: _notificationInterval - now.minute % _notificationInterval,
+      ));
     }
 
-    if (end.isBefore(now)) {
-      // If the end time is before now, schedule for the next day
+    // If the end time is before the start time, move the end time to the next day
+    if (end.isBefore(start)) {
       end = end.add(const Duration(days: 1));
     }
 
-    for (var time = start;
-        time.isBefore(end);
-        time = time.add(Duration(minutes: _notificationInterval))) {
-      if (time.isAfter(now)) {
-        await flutterLocalNotificationsPlugin.zonedSchedule(
-          time.millisecondsSinceEpoch % 100000, // Unique ID for each notification
-          'Time to log your activities!',
-          'Tap to open and log your activities for the past $_notificationInterval minutes.',
-          time,
-          const NotificationDetails(
-            android: AndroidNotificationDetails(
-              notificationChannelId,
-              notificationChannelName,
-              channelDescription: notificationChannelDescription,
-              importance: Importance.high,
-              priority: Priority.high,
-            ),
-            iOS: DarwinNotificationDetails(),
-          ),
-          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-          uiLocalNotificationDateInterpretation:
-              UILocalNotificationDateInterpretation.absoluteTime,
-        );
+    if (kDebugMode) {
+      print('Now (local): $now');
+      print('Start (local): $start');
+      print('End (local): $end');
+      print('Scheduling notifications from $start to $end every $_notificationInterval minutes.');
+    }
+
+    for (var time = start; time.isBefore(end); time = time.add(Duration(minutes: _notificationInterval))) {
+      if (kDebugMode) {
+        print('Scheduling notification for: $time');
       }
+      await flutterLocalNotificationsPlugin.zonedSchedule(
+        time.millisecondsSinceEpoch % 100000, // Unique ID for each notification
+        'Time to log your activities!',
+        'Tap to open and log your activities for the past $_notificationInterval minutes.',
+        time,
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            notificationChannelId,
+            notificationChannelName,
+            channelDescription: notificationChannelDescription,
+            importance: Importance.high,
+            priority: Priority.high,
+          ),
+          iOS: DarwinNotificationDetails(),
+        ),
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+        matchDateTimeComponents: DateTimeComponents.time, // Repeats daily at the specified time
+        payload: 'Log your activities', // Payload for the notification
+      );
     }
   }
 
@@ -198,6 +217,7 @@ class ProfileScreenState extends State<ProfileScreen> {
         ),
         iOS: DarwinNotificationDetails(),
       ),
+      payload: 'Log your activities', // Payload for the notification
     );
   }
 
@@ -225,7 +245,7 @@ class ProfileScreenState extends State<ProfileScreen> {
               title: const Text('Notification Interval (minutes)'),
               trailing: DropdownButton<int>(
                 value: _notificationInterval,
-                items: [15, 30, 60].map((int value) {
+                items: [1, 15, 30, 60].map((int value) {
                   return DropdownMenuItem<int>(
                     value: value,
                     child: Text(value.toString()),
