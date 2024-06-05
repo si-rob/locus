@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'sign_in_screen.dart';
 import 'home_screen.dart'; 
 import 'log_entry_screen.dart';
+import 'notification_settings_screen.dart';
 import 'reporting_screen.dart';
 import 'profile_screen.dart';
 import 'goals_screen.dart';
@@ -48,6 +49,7 @@ class MyApp extends StatelessWidget {
         '/report': (context) => ReportingScreen(),
         '/profile': (context) => const ProfileScreen(),
         '/goals': (context) => GoalsScreen(auth: auth, firestore: firestore),
+        '/notifications': (context) => const NotificationSettingsScreen(), // Add this route
       },
     );
   }
