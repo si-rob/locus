@@ -8,6 +8,7 @@ import 'notification_settings_screen.dart';
 import 'reporting_screen.dart';
 import 'profile_screen.dart';
 import 'goals_screen.dart';
+import 'auth_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -41,15 +42,34 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      initialRoute: '/',
+      home: const AuthWrapper(),
       routes: {
-        '/': (context) => const SignInScreen(),
         '/home': (context) => const HomeScreen(),
         '/log': (context) => const LogEntryScreen(),
         '/report': (context) => ReportingScreen(),
         '/profile': (context) => const ProfileScreen(),
         '/goals': (context) => GoalsScreen(auth: auth, firestore: firestore),
         '/notifications': (context) => const NotificationSettingsScreen(), // Add this route
+      },
+    );
+  }
+}
+
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: AuthService().authStateChanges,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const CircularProgressIndicator(); // or splash screen
+        }
+        if (snapshot.hasData) {
+          return const HomeScreen();
+        }
+        return const SignInScreen();
       },
     );
   }
