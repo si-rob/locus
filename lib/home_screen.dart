@@ -55,7 +55,7 @@ class HomeScreenState extends State<HomeScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 20),
                 textStyle: const TextStyle(fontSize: 18),
               ),
-              child: const Text('Daily Report'),
+              child: const Text('Reports'),
             ),
             const SizedBox(height: 20),
             ElevatedButton(
