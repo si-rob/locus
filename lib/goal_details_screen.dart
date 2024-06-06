@@ -54,7 +54,7 @@ class GoalDetailsScreenState extends State<GoalDetailsScreen> {
             TextField(
               controller: _titleController,
               decoration: const InputDecoration(
-                labelText: 'Goal Title',
+                labelText: 'Title',
                 border: OutlineInputBorder(),
               ),
               style: const TextStyle(fontSize: 18),

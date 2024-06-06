@@ -43,8 +43,8 @@ class GoalsScreenState extends State<GoalsScreen> {
               return {
                 'id': goal['id'] ?? const Uuid().v4(), // Generate ID if missing
                 'title': await _encryptionService.decryptText(goal['title']),
-                'goalType': goal['goalType'],
-                'goalDuration': goal['goalDuration'],
+                'goalType': goal['goalType'] != null ? await _encryptionService.decryptText(goal['goalType']) : null,
+                'goalDuration': goal['goalDuration'] != null ? await _encryptionService.decryptText(goal['goalDuration']) : null,
                 'goalCompletion': goal['goalCompletion'],
               };
             }).toList());
@@ -119,7 +119,7 @@ class GoalsScreenState extends State<GoalsScreen> {
     return {
       'id': goal['id'],
       'title': await _encryptionService.encryptText(goal['title']),
-      'goalType': await _encryptionService.encryptText(goal['goalType']),
+      'goalType': goal['goalType'] != null ? await _encryptionService.encryptText(goal['goalType']) : null,
       'goalDuration': goal['goalDuration'] != null ? await _encryptionService.encryptText(goal['goalDuration']) : null,
       'goalCompletion': goal['goalCompletion'],
     };
@@ -129,7 +129,7 @@ class GoalsScreenState extends State<GoalsScreen> {
     return {
       'id': goal['id'],
       'title': await _encryptionService.decryptText(goal['title']),
-      'goalType': await _encryptionService.decryptText(goal['goalType']),
+      'goalType': goal['goalType'] != null ? await _encryptionService.decryptText(goal['goalType']) : null,
       'goalDuration': goal['goalDuration'] != null ? await _encryptionService.decryptText(goal['goalDuration']) : null,
       'goalCompletion': goal['goalCompletion'],
     };
