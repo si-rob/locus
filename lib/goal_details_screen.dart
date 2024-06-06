@@ -4,7 +4,7 @@ class GoalDetailsScreen extends StatefulWidget {
   final Map<String, dynamic>? goal;
   final Future<Map<String, dynamic>> Function(Map<String, dynamic>) onSave;
 
-  const GoalDetailsScreen({super.key, this.goal, required this.onSave});
+  const GoalDetailsScreen({this.goal, required this.onSave, super.key});
 
   @override
   GoalDetailsScreenState createState() => GoalDetailsScreenState();
@@ -20,23 +20,25 @@ class GoalDetailsScreenState extends State<GoalDetailsScreen> {
   void initState() {
     super.initState();
     if (widget.goal != null) {
-      _titleController.text = widget.goal!['title'] ?? '';
+      _titleController.text = widget.goal!['title'];
       _goalTypeController.text = widget.goal!['goalType'] ?? '';
       _goalDurationController.text = widget.goal!['goalDuration'] ?? '';
-      _goalCompletionController.text = (widget.goal!['goalCompletion'] ?? '').toString();
+      _goalCompletionController.text = widget.goal!['goalCompletion'].toString();
     }
   }
 
   Future<void> _saveGoal() async {
-    final newGoal = {
+    final Map<String, dynamic> updatedGoal = {
+      'id': widget.goal?['id'], // Preserve the ID if editing an existing goal
       'title': _titleController.text,
       'goalType': _goalTypeController.text,
       'goalDuration': _goalDurationController.text,
       'goalCompletion': double.tryParse(_goalCompletionController.text) ?? 0.0,
     };
-    final encryptedGoal = await widget.onSave(newGoal);
+
+    final result = await widget.onSave(updatedGoal);
     if (mounted) {
-      Navigator.pop(context, encryptedGoal);
+      Navigator.pop(context, result);
     }
   }
 
@@ -52,7 +54,7 @@ class GoalDetailsScreenState extends State<GoalDetailsScreen> {
             TextField(
               controller: _titleController,
               decoration: const InputDecoration(
-                labelText: 'Title',
+                labelText: 'Goal Title',
                 border: OutlineInputBorder(),
               ),
               style: const TextStyle(fontSize: 18),
@@ -79,9 +81,10 @@ class GoalDetailsScreenState extends State<GoalDetailsScreen> {
             TextField(
               controller: _goalCompletionController,
               decoration: const InputDecoration(
-                labelText: 'Goal Completion',
+                labelText: 'Goal Completion (%)',
                 border: OutlineInputBorder(),
               ),
+              keyboardType: TextInputType.number,
               style: const TextStyle(fontSize: 18),
             ),
             const SizedBox(height: 40),
