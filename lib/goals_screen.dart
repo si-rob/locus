@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'encryption_service.dart';
 import 'goal_details_screen.dart';
-import 'package:flutter/foundation.dart'; // Import foundation for kDebugMode
+import 'package:uuid/uuid.dart';
 
 class GoalsScreen extends StatefulWidget {
   final FirebaseAuth auth;
@@ -40,26 +40,19 @@ class GoalsScreenState extends State<GoalsScreen> {
           final goalsData = data['goals'];
           if (goalsData is List) {
             final decryptedGoals = await Future.wait(goalsData.whereType<Map<String, dynamic>>().map((goal) async {
-              try {
-                return {
-                  'title': await _encryptionService.decryptText(goal['title']),
-                  'goalType': await _encryptionService.decryptText(goal['goalType']),
-                  'goalDuration': goal['goalDuration'] != null
-                      ? await _encryptionService.decryptText(goal['goalDuration'])
-                      : null,
-                  'goalCompletion': goal['goalCompletion'],
-                };
-              } catch (e) {
-                if (kDebugMode) {
-                  print('Decryption error: $e');
-                }
-                return null;
-              }
+              return {
+                'id': goal['id'] ?? const Uuid().v4(), // Generate ID if missing
+                'title': await _encryptionService.decryptText(goal['title']),
+                'goalType': goal['goalType'],
+                'goalDuration': goal['goalDuration'],
+                'goalCompletion': goal['goalCompletion'],
+              };
             }).toList());
-
-            setState(() {
-              _goals = decryptedGoals.where((goal) => goal != null).cast<Map<String, dynamic>>().toList();
-            });
+            if (mounted) {
+              setState(() {
+                _goals = decryptedGoals;
+              });
+            }
           }
         }
       }
@@ -105,6 +98,7 @@ class GoalsScreenState extends State<GoalsScreen> {
       MaterialPageRoute(
         builder: (context) => GoalDetailsScreen(
           onSave: (newGoal) async {
+            newGoal['id'] = const Uuid().v4(); // Add ID to new goal
             final encryptedGoal = await _encryptGoal(newGoal);
             return encryptedGoal;
           },
@@ -123,6 +117,7 @@ class GoalsScreenState extends State<GoalsScreen> {
 
   Future<Map<String, dynamic>> _encryptGoal(Map<String, dynamic> goal) async {
     return {
+      'id': goal['id'],
       'title': await _encryptionService.encryptText(goal['title']),
       'goalType': await _encryptionService.encryptText(goal['goalType']),
       'goalDuration': goal['goalDuration'] != null ? await _encryptionService.encryptText(goal['goalDuration']) : null,
@@ -132,6 +127,7 @@ class GoalsScreenState extends State<GoalsScreen> {
 
   Future<Map<String, dynamic>> _decryptGoal(Map<String, dynamic> goal) async {
     return {
+      'id': goal['id'],
       'title': await _encryptionService.decryptText(goal['title']),
       'goalType': await _encryptionService.decryptText(goal['goalType']),
       'goalDuration': goal['goalDuration'] != null ? await _encryptionService.decryptText(goal['goalDuration']) : null,
@@ -172,7 +168,7 @@ class GoalsScreenState extends State<GoalsScreen> {
                 itemBuilder: (context, index) {
                   final goal = _goals[index];
                   return Dismissible(
-                    key: Key(goal['title']),
+                    key: Key(goal['id']),
                     onDismissed: (direction) {
                       _deleteGoal(index);
                     },

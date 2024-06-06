@@ -11,6 +11,28 @@ class ReportingScreen extends StatelessWidget {
 
   ReportingScreen({super.key});
 
+  Future<Map<String, String>> _fetchGoalTitles() async {
+    final User? user = _auth.currentUser;
+    if (user != null) {
+      final DocumentSnapshot userDoc = await _firestore.collection('users').doc(user.uid).get();
+      if (userDoc.exists) {
+        final data = userDoc.data() as Map<String, dynamic>;
+        if (data.containsKey('goals')) {
+          final goalsData = data['goals'];
+          if (goalsData is List) {
+            final goalTitles = <String, String>{};
+            for (final goal in goalsData.whereType<Map<String, dynamic>>()) {
+              final decryptedTitle = await _encryptionService.decryptText(goal['title']);
+              goalTitles[goal['id']] = decryptedTitle;
+            }
+            return goalTitles;
+          }
+        }
+      }
+    }
+    return {};
+  }
+
   Future<List<Map<String, dynamic>>> _fetchLogEntries() async {
     final User? user = _auth.currentUser;
     if (user != null) {
@@ -23,17 +45,13 @@ class ReportingScreen extends StatelessWidget {
 
       return Future.wait(querySnapshot.docs.map((doc) async {
         final data = doc.data() as Map<String, dynamic>;
-        final interactionWith = await _encryptionService.decryptText(data['interactionWith']);
-        final action = await _encryptionService.decryptText(data['action']);
-        final category = await _encryptionService.decryptText(data['category']);
-
         return {
-          'userId': data['userId'],
           'timestamp': data['timestamp'],
-          'interactionWith': interactionWith,
-          'action': action,
-          'category': category,
-          'timeTaken': data['timeTaken'],
+          'interactionWith': await _encryptionService.decryptText(data['interactionWith']),
+          'action': await _encryptionService.decryptText(data['action']),
+          'category': await _encryptionService.decryptText(data['category']),
+          'timeTaken': await _encryptionService.decryptText(data['timeTaken']), // Decrypt timeTaken
+          'goalId': data['goalId'],
         };
       }).toList());
     }
@@ -44,6 +62,12 @@ class ReportingScreen extends StatelessWidget {
     final dateTime = timestamp.toDate();
     final formattedTime = DateFormat('HH:mm').format(dateTime);
     return formattedTime;
+  }
+
+  Future<String> _generateSummary(List<Map<String, dynamic>> logEntries) async {
+    // Generate a summary of the log entries here
+    // This can be customized as needed
+    return "Summary of the day's activities";
   }
 
   @override
@@ -61,45 +85,81 @@ class ReportingScreen extends StatelessWidget {
               return Center(child: Text('Error fetching log entries: ${snapshot.error}'));
             } else if (snapshot.hasData) {
               final logEntries = snapshot.data!;
-              return ListView.builder(
-                itemCount: logEntries.length,
-                itemBuilder: (context, index) {
-                  final logEntry = logEntries[index];
-                  return Card(
-                    margin: const EdgeInsets.symmetric(vertical: 10),
-                    child: Padding(
-                      padding: const EdgeInsets.all(15),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Time: ${_formatTimestamp(logEntry['timestamp'])}',
-                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 10),
-                          Text(
-                            'Interaction With: ${logEntry['interactionWith']}',
-                            style: const TextStyle(fontSize: 16),
-                          ),
-                          const SizedBox(height: 5),
-                          Text(
-                            'Action: ${logEntry['action']}',
-                            style: const TextStyle(fontSize: 16),
-                          ),
-                          const SizedBox(height: 5),
-                          Text(
-                            'Category: ${logEntry['category']}',
-                            style: const TextStyle(fontSize: 16),
-                          ),
-                          const SizedBox(height: 5),
-                          Text(
-                            'Time Taken: ${logEntry['timeTaken']} minutes',
-                            style: const TextStyle(fontSize: 16),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
+              return FutureBuilder<Map<String, String>>(
+                future: _fetchGoalTitles(),
+                builder: (context, goalSnapshot) {
+                  if (goalSnapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (goalSnapshot.hasError) {
+                    return Center(child: Text('Error fetching goals: ${goalSnapshot.error}'));
+                  } else if (goalSnapshot.hasData) {
+                    final goalTitles = goalSnapshot.data!;
+                    return FutureBuilder<String>(
+                      future: _generateSummary(logEntries),
+                      builder: (context, summarySnapshot) {
+                        if (summarySnapshot.connectionState == ConnectionState.waiting) {
+                          return const Center(child: CircularProgressIndicator());
+                        } else if (summarySnapshot.hasError) {
+                          return Center(child: Text('Error generating summary: ${summarySnapshot.error}'));
+                        } else if (summarySnapshot.hasData) {
+                          final summary = summarySnapshot.data!;
+                          return ListView(
+                            children: [
+                              Card(
+                                margin: const EdgeInsets.symmetric(vertical: 10),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(15),
+                                  child: Text(summary, style: const TextStyle(fontSize: 18)),
+                                ),
+                              ),
+                              ...logEntries.map((logEntry) => Card(
+                                margin: const EdgeInsets.symmetric(vertical: 10),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(15),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Time: ${_formatTimestamp(logEntry['timestamp'])}',
+                                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                      ),
+                                      const SizedBox(height: 10),
+                                      Text(
+                                        'Interaction With: ${logEntry['interactionWith']}',
+                                        style: const TextStyle(fontSize: 16),
+                                      ),
+                                      const SizedBox(height: 5),
+                                      Text(
+                                        'Action: ${logEntry['action']}',
+                                        style: const TextStyle(fontSize: 16),
+                                      ),
+                                      const SizedBox(height: 5),
+                                      Text(
+                                        'Category: ${logEntry['category']}',
+                                        style: const TextStyle(fontSize: 16),
+                                      ),
+                                      const SizedBox(height: 5),
+                                      Text(
+                                        'Time Taken: ${logEntry['timeTaken']} minutes',
+                                        style: const TextStyle(fontSize: 16),
+                                      ),
+                                      const SizedBox(height: 5),
+                                      Text(
+                                        'Goal: ${goalTitles[logEntry['goalId']] ?? 'No goal'}',
+                                        style: const TextStyle(fontSize: 16),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )),
+                            ],
+                          );
+                        }
+                        return const Center(child: Text('No log entries found'));
+                      },
+                    );
+                  }
+                  return const Center(child: Text('No log entries found'));
                 },
               );
             } else {
