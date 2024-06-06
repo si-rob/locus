@@ -5,7 +5,7 @@ import 'sign_in_screen.dart';
 import 'home_screen.dart'; 
 import 'log_entry_screen.dart';
 import 'notification_settings_screen.dart';
-import 'reporting_screen.dart';
+import 'reporting_tab_screen.dart';
 import 'profile_screen.dart';
 import 'goals_screen.dart';
 import 'auth_service.dart';
@@ -46,7 +46,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/home': (context) => const HomeScreen(),
         '/log': (context) => const LogEntryScreen(),
-        '/report': (context) => ReportingScreen(),
+        '/report': (context) => const ReportingTabScreen(),
         '/profile': (context) => const ProfileScreen(),
         '/goals': (context) => GoalsScreen(auth: auth, firestore: firestore),
         '/notifications': (context) => const NotificationSettingsScreen(), // Add this route
