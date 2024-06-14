@@ -90,7 +90,7 @@ class NotificationSettingsScreenState extends State<NotificationSettingsScreen> 
       );
 
       // Ensure the notification interval is one of the valid values
-      if (![15, 30, 60].contains(_notificationInterval)) {
+      if (![1, 15, 30, 60].contains(_notificationInterval)) {
         _notificationInterval = defaultNotificationInterval;
       }
     });
@@ -125,6 +125,11 @@ class NotificationSettingsScreenState extends State<NotificationSettingsScreen> 
     if (!(await Permission.notification.isGranted)) {
       openAppSettings();
     }
+
+    // Check and request for battery optimization
+    if (await Permission.ignoreBatteryOptimizations.isDenied) {
+      await Permission.ignoreBatteryOptimizations.request();
+    }    
   }
 
   Future<void> _scheduleNotifications() async {
@@ -245,7 +250,7 @@ class NotificationSettingsScreenState extends State<NotificationSettingsScreen> 
               title: const Text('Notification Interval (minutes)'),
               trailing: DropdownButton<int>(
                 value: _notificationInterval,
-                items: [15, 30, 60].map((int value) {
+                items: [1, 15, 30, 60].map((int value) {
                   return DropdownMenuItem<int>(
                     value: value,
                     child: Text(value.toString()),
